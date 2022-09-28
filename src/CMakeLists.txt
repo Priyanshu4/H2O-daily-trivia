@@ -16,7 +16,9 @@ pico_sdk_init()
 # Add your source files
 add_executable(${NAME}
     main.cpp # <-- Add source files here!n
-    trivia_questions.hpp
+    trivia_question.hpp
+    trivia_questions_data.hpp
+
 )
 
 # Include required libraries

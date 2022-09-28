@@ -10,7 +10,7 @@
 #include "rgbled.hpp"
 #include "button.hpp"
 
-#include "trivia_questions.hpp"
+#include "trivia_questions_data.hpp"
 
 // Initialize Display Drivers
 pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
