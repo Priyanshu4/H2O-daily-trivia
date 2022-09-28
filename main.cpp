@@ -1,6 +1,6 @@
 #include <math.h>
-#include <vector>
 #include <cstdlib>
+#include "pico/stdlib.h"
 
 #include "libraries/pico_display_2/pico_display_2.hpp"
 #include "drivers/st7789/st7789.hpp"
@@ -25,6 +25,8 @@ pimoroni::Button button_b(pimoroni::PicoDisplay2::B);
 pimoroni::Button button_x(pimoroni::PicoDisplay2::X);
 pimoroni::Button button_y(pimoroni::PicoDisplay2::Y);  
 
+enum AnswerChoice {A = 0, B = 1, X = 2, Y = 3};
+
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
@@ -40,6 +42,10 @@ pimoroni::Button button_y(pimoroni::PicoDisplay2::Y);
 int main() {
   // set backlight to full brightness
   st7789.set_backlight(255);
+  
+  // set random seed to the lower 32 bits of the hardware timer
+  unsigned int rand_seed = time_us_32(); 
+  srand(rand_seed);
 
   // draw background
   pimoroni::Pen BG = graphics.create_pen(0, 0, 255);
@@ -68,10 +74,11 @@ int main() {
   pico_trivia::TriviaQuestion trivia_q = pico_trivia::trivia_questions[0];
   
   graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, font_scale);
-  graphics.text("A) " + trivia_q.correct_answer, pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_A_HEIGHT), SCREEN_WIDTH, font_scale);
-  graphics.text("B) " + trivia_q.wrong_answers[0], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_B_HEIGHT), SCREEN_WIDTH, font_scale);
-  graphics.text("X) " + trivia_q.wrong_answers[1], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_X_HEIGHT), SCREEN_WIDTH, font_scale);
-  graphics.text("Y) " + trivia_q.wrong_answers[2], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_Y_HEIGHT), SCREEN_WIDTH, font_scale);
+  std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
+  graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_A_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_B_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_X_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_Y_HEIGHT), SCREEN_WIDTH, font_scale);
 
   
   
