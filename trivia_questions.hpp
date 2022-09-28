@@ -20,7 +20,7 @@ namespace pico_trivia {
 
 	// TODO: python scripts for trivia question generation
 	std::array<TriviaQuestion, 1> trivia_questions = {
-		TriviaQuestion("1 + 1", "2", {"0", "1", "4"})
+		TriviaQuestion("How many bones do sharks have in their bodies?", "0", {"235", "206", "1095"})
 	};
 		
 }

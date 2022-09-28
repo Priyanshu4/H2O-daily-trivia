@@ -5,40 +5,75 @@
 #include "libraries/pico_display_2/pico_display_2.hpp"
 #include "drivers/st7789/st7789.hpp"
 #include "libraries/pico_graphics/pico_graphics.hpp"
+#include "libraries/bitmap_fonts/bitmap_fonts.hpp"
+#include "libraries/bitmap_fonts/font8_data.hpp"
 #include "rgbled.hpp"
 #include "button.hpp"
 
-#include "trivia_questions.h"
+#include "trivia_questions.hpp"
 
+// Initialize Display Drivers
+pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
+pimoroni::PicoGraphics_PenRGB332 graphics(st7789.width, st7789.height, nullptr);
 
-using namespace pimoroni;
+// Initialize RGBLED on right side of display
+pimoroni::RGBLED led(pimoroni::PicoDisplay2::LED_R, pimoroni::PicoDisplay2::LED_G, pimoroni::PicoDisplay2::LED_B);
 
-ST7789 st7789(320, 240, ROTATE_0, false, get_spi_pins(BG_SPI_FRONT));
-PicoGraphics_PenRGB332 graphics(st7789.width, st7789.height, nullptr);
+// Initialize buttons
+pimoroni::Button button_a(pimoroni::PicoDisplay2::A);
+pimoroni::Button button_b(pimoroni::PicoDisplay2::B);
+pimoroni::Button button_x(pimoroni::PicoDisplay2::X);
+pimoroni::Button button_y(pimoroni::PicoDisplay2::Y);  
 
-RGBLED led(PicoDisplay2::LED_R, PicoDisplay2::LED_G, PicoDisplay2::LED_B);
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
 
-Button button_a(PicoDisplay2::A);
-Button button_b(PicoDisplay2::B);
-Button button_x(PicoDisplay2::X);
-Button button_y(PicoDisplay2::Y);  
+#define HEADER_HEIGHT 0
+
+#define QUESTION_HEIGHT 25
+#define ANSWER_CHOICES_START_X 10
+#define CHOICE_A_HEIGHT 80
+#define CHOICE_B_HEIGHT 120
+#define CHOICE_X_HEIGHT 160
+#define CHOICE_Y_HEIGHT 200
 
 int main() {
   // set backlight to full brightness
   st7789.set_backlight(255);
 
   // draw background
-  Pen BG = graphics.create_pen(0, 0, 255);
+  pimoroni::Pen BG = graphics.create_pen(0, 0, 255);
   graphics.set_pen(BG);
   graphics.clear();
+
+  // set font
+  const bitmap::font_t * font = &font8;
+  graphics.set_font(font);
+  float font_scale = 2;
+  int max_char_width = ceil(font_scale * font->max_width * font_scale);
+  int char_height = ceil(font_scale * font->height);
   
   // TODO on first setup, add a way to set date/time
+
   
+  
+  pimoroni::Pen WHITE = graphics.create_pen(255, 255, 255);
+  graphics.set_pen(WHITE);
+  int32_t header_width = graphics.measure_text("H2O Daily Trivia", font_scale, 1);
+  graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2 - 1, 0), SCREEN_WIDTH, font_scale);
+
+
   // get trivia question
   // TODO get a new trivia question every day
   pico_trivia::TriviaQuestion trivia_q = pico_trivia::trivia_questions[0];
   
-  Pen WHITE = graphics.create_pen(255, 255, 255);
+  graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("A) " + trivia_q.correct_answer, pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_A_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("B) " + trivia_q.wrong_answers[0], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_B_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("X) " + trivia_q.wrong_answers[1], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_X_HEIGHT), SCREEN_WIDTH, font_scale);
+  graphics.text("Y) " + trivia_q.wrong_answers[2], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_Y_HEIGHT), SCREEN_WIDTH, font_scale);
+
+  
   
   // TODO write trivia questions and answers, detect button input for each answer, play animations for correct/incorrect
 
