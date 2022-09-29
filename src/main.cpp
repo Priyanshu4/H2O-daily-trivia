@@ -10,6 +10,7 @@
 #include "rgbled.hpp"
 #include "button.hpp"
 
+
 #include "trivia_questions_data.hpp"
 
 // Initialize Display Drivers
@@ -33,11 +34,19 @@ enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
 #define HEADER_HEIGHT 0
 
 #define QUESTION_HEIGHT 25
-#define ANSWER_CHOICES_START_X 10
+#define INDENT 10
 #define CHOICE_A_HEIGHT 80
 #define CHOICE_B_HEIGHT 120
 #define CHOICE_X_HEIGHT 160
 #define CHOICE_Y_HEIGHT 200
+
+#define MILLISECONDS_TO_SHOW_ANSWER_SCREEN 5000
+#define SELECTED_ANSWER_MESSAGE_HEIGHT 20
+#define ANSWER_CORRECTNESS_MESSAGE_HEIGHT 65
+#define ANSWER_STATISTICS_MESSAGE_HEIGHT 120
+#define COME_BACK_MESSAGE_HEIGHT 180
+
+
 
 struct AnswerStatistics 
 {
@@ -88,10 +97,10 @@ int main() {
     graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2 - 1, 0), SCREEN_WIDTH, font_scale);
     
     graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, font_scale);
-    graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_A_HEIGHT), SCREEN_WIDTH, font_scale);
-    graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_B_HEIGHT), SCREEN_WIDTH, font_scale);
-    graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_X_HEIGHT), SCREEN_WIDTH, font_scale);
-    graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(ANSWER_CHOICES_START_X, CHOICE_Y_HEIGHT), SCREEN_WIDTH, font_scale);
+    graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
     
     // update screen
     st7789.update(&graphics);
@@ -120,22 +129,41 @@ int main() {
       }
     }
             
-    answer_stats.num_answers++;
       
     // clear screen
     graphics.set_pen(BG);
     graphics.clear();
 
     graphics.set_pen(WHITE);
-    graphics.text("You selected answer " + selected_letter, pimoroni::Point(0, 0), SCREEN_WIDTH, font_scale);
-    st7789.update(&graphics);
+    graphics.text("You selected answer " + selected_letter, pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("Come back tommorow for another question!", pimoroni::Point(INDENT, COME_BACK_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+
+    
+    if (answer_stats.num_answers == 0)
+    {
+      graphics.text("You were the first person to answer today's question.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    }
+    else 
+    {
+      int percent_correct = 100 * ((float)answer_stats.num_correct)/answer_stats.num_answers;
+      std::string percent_string = std::to_string(percent_correct);
+      graphics.text(percent_string + "% of other people got this question correct today.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    }
 
     if (answer_choices[selected_answer] == trivia_q.correct_answer)
     {
       answer_stats.num_correct++;
+      graphics.set_pen(GREEN);
+      graphics.text("Correct!", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale*2);
     }
-      
-    sleep_ms(1000);
+    else {
+      graphics.set_pen(RED);
+      graphics.text("Incorrect :(", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale*2);
+    }
+    
+    st7789.update(&graphics);
+    answer_stats.num_answers++;
+    sleep_ms(MILLISECONDS_TO_SHOW_ANSWER_SCREEN);
   }
   return 0;
 }
