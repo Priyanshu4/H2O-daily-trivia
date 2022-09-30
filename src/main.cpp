@@ -95,8 +95,7 @@ int main() {
   
     // get current time
     pico_trivia::DayTime now = clock.get_time();
-    int hour = now.hour > 12 ? now.hour - 12 : now.hour;
-    std::string time_str = std::to_string(hour) + ":" + std::to_string(now.minute);
+    std::string time_str = std::to_string(now.get_12_normalized_hour()) + ":" + std::to_string(now.minute);
     
     // Draw Trivia Question on Screen
     graphics.set_pen(WHITE);

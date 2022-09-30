@@ -9,6 +9,7 @@ namespace pico_trivia
 			int hour;
 			int minute;
 			int second;
+			int get_12_normalized_hour();
 			DayTime(int day=0, int hour=0, int minute=0, int second=0);
 	};
 	

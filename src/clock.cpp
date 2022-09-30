@@ -25,6 +25,15 @@ DayTime::DayTime(int day, int hour, int minute, int second)
 	this->day = day;
 }
 
+int DayTime::get_12_normalized_hour()
+{
+	if (this->hour == 0)
+		return 12;
+	if (this->hour > 12)
+		return this->hour-12;
+	return hour;
+}
+
 void Clock::set_time(DayTime time)
 {
 	this->absolute_set_time = get_absolute_time();
