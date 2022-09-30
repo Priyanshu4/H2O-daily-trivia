@@ -18,6 +18,8 @@ add_executable(${NAME}
     main.cpp # <-- Add source files here!n
     trivia_question.hpp
     trivia_questions_data.hpp
+    clock.hpp
+    clock.cpp
 
 )
 

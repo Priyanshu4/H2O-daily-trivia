@@ -10,7 +10,7 @@
 #include "rgbled.hpp"
 #include "button.hpp"
 
-
+#include "clock.hpp"
 #include "trivia_questions_data.hpp"
 
 // Initialize Display Drivers
@@ -32,6 +32,7 @@ enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
 #define SCREEN_HEIGHT 240
 
 #define HEADER_HEIGHT 0
+#define TIME_LEFT_OFFSET 3
 
 #define QUESTION_HEIGHT 25
 #define INDENT 10
@@ -77,8 +78,9 @@ int main() {
 
 
   // TODO on first setup, add a way to set date/time
-
-
+  pico_trivia::Clock clock = pico_trivia::Clock();
+  clock.set_time(pico_trivia::DayTime(0, 10, 37, 0));
+  
   // get trivia question
   // TODO get a new trivia question every day
   pico_trivia::TriviaQuestion trivia_q = pico_trivia::trivia_questions[0];
@@ -91,10 +93,18 @@ int main() {
     graphics.set_pen(BG);
     graphics.clear();
   
+    // get current time
+    pico_trivia::DayTime now = clock.get_time();
+    int hour = now.hour > 12 ? now.hour - 12 : now.hour;
+    std::string time_str = std::to_string(hour) + ":" + std::to_string(now.minute);
+    
     // Draw Trivia Question on Screen
     graphics.set_pen(WHITE);
     int32_t header_width = graphics.measure_text("H2O Daily Trivia", font_scale, 1);
-    graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2 - 1, 0), SCREEN_WIDTH, font_scale);
+    graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2 - 1, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
+    
+    int32_t time_width = graphics.measure_text(time_str, font_scale, 1);
+    graphics.text(time_str, pimoroni::Point(SCREEN_WIDTH - time_width - TIME_LEFT_OFFSET, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
     
     graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, font_scale);
     graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
@@ -108,8 +118,12 @@ int main() {
     std::string selected_letter = "";
     AnswerChoice selected_answer = AnswerChoice::NO_ANSWER;
     
-    while(selected_answer == AnswerChoice::NO_ANSWER)
+    bool time_changed = clock.get_time().minute != now.minute;
+    
+    // Keep Checking for button press until button is pressed or time changes, in which case screen needs to be redrawn
+    while(selected_answer == AnswerChoice::NO_ANSWER && !time_changed)
     {
+      time_changed = clock.get_time().minute != now.minute;
       if (button_a.raw()) 
       {
         selected_answer = AnswerChoice::A;
@@ -128,6 +142,9 @@ int main() {
         selected_letter = "Y";
       }
     }
+    
+    // if while loop exited due to time change, continue instead of showing answer screen
+    if (selected_answer == AnswerChoice::NO_ANSWER) continue;
             
       
     // clear screen
