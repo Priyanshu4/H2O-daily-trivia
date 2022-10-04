@@ -10,9 +10,9 @@ namespace pico_trivia {
 	class TriviaQuestion 
 	{
 		public:
-			const std::string question;
-			const std::string correct_answer;
-			const std::array<std::string, NUM_WRONG_ANSWER_CHOICES> wrong_answers;
+			std::string question;
+			std::string correct_answer;
+			std::array<std::string, NUM_WRONG_ANSWER_CHOICES> wrong_answers;
 			TriviaQuestion(std::string question, std::string correct_answer, std::array<std::string, NUM_WRONG_ANSWER_CHOICES> wrong_answers)
 				: question(question)
 				, correct_answer(correct_answer)
@@ -25,6 +25,13 @@ namespace pico_trivia {
 				answer_choices[NUM_ANSWER_CHOICES-1] = correct_answer;
 				std::random_shuffle(std::begin(answer_choices), std::end(answer_choices));
 				return answer_choices;
+			}
+			TriviaQuestion& operator=(const TriviaQuestion& other)
+			{
+				question = other.question;
+				correct_answer = other.correct_answer;
+				wrong_answers = other.wrong_answers;
+				return *this;
 			}
 	};
 	

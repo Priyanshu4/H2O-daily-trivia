@@ -160,23 +160,29 @@ int main() {
   }
   clock.set_time(set_time);
   
-  // get trivia question
-  // TODO get a new trivia question every day
-  pico_trivia::TriviaQuestion trivia_q = pico_trivia::trivia_questions[0];
+  int daynumber = clock.get_time().day;
+  pico_trivia::TriviaQuestion trivia_q = pico_trivia::get_todays_question(daynumber);
   std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
   AnswerStatistics answer_stats;
 
   while(true) {
-    
-    // draw background
-    graphics.set_pen(BLUE);
-    graphics.clear();
   
     // get current time
     pico_trivia::DayTime now = clock.get_time();
     std::string hour_str = std::to_string(now.get_12_normalized_hour());
     std::string minute_str = now.minute < 10 ? "0" + std::to_string(now.minute) : std::to_string(now.minute);
     std::string time_str = hour_str + ":" + minute_str;
+    
+    // if day has changed, get new trivia question
+    if (now.day != daynumber)
+    {
+      daynumber = now.day;
+      trivia_q = pico_trivia::get_todays_question(daynumber);
+    }
+    
+    // draw background
+    graphics.set_pen(BLUE);
+    graphics.clear();
     
     // Draw Trivia Question on Screen
     graphics.set_pen(TEXT_PEN);
