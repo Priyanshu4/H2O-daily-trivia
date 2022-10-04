@@ -1,3 +1,4 @@
+#pragma once
 #include "trivia_question.hpp"
 
 namespace pico_trivia {

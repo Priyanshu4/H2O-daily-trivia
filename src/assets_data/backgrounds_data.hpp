@@ -1,3 +1,4 @@
+#pragma once
 #include "background.hpp"
 
 namespace pico_trivia {

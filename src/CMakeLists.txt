@@ -9,6 +9,7 @@ include(pico_sdk_import.cmake)
 project(${NAME} C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Initialize the SDK
 pico_sdk_init()
@@ -17,11 +18,13 @@ pico_sdk_init()
 add_executable(${NAME}
     main.cpp # <-- Add source files here!n
     trivia_question.hpp
-    trivia_questions_data.hpp
+    assets_data/trivia_questions_data.hpp
     clock.hpp
     clock.cpp
     background.hpp
-    backgrounds_data.hpp
+    assets_data/backgrounds_data.hpp
+    theme.hpp
+    assets_data/themes_data.hpp
 )
 
 # Include required libraries

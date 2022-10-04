@@ -11,8 +11,8 @@
 #include "button.hpp"
 
 #include "clock.hpp"
-#include "trivia_questions_data.hpp"
-#include "backgrounds_data.hpp"
+#include "assets_data/trivia_questions_data.hpp"
+#include "assets_data/backgrounds_data.hpp"
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -76,15 +76,14 @@ int main() {
   pimoroni::Pen GREEN = graphics.create_pen(50, 205, 50);
   pimoroni::Pen RED = graphics.create_pen(255, 0, 0);
   pimoroni::Pen BLUE = graphics.create_pen(0, 0, 255);
-  
-  pimoroni::Pen TEXT_PEN = BLUE;
-  pico_trivia::Background BG = pico_trivia::bamboo_background;
 
 
   // Create setup screen with way to set date/time
   pico_trivia::Clock clock = pico_trivia::Clock();
   pico_trivia::DayTime set_time = pico_trivia::DayTime(0, 0, 0, 0);
   SettingsMenuCursor cursor = SettingsMenuCursor::DAY;
+  
+  led.set_rgb(0, 0, 0);
   
   bool done_pressed = false;
   while(!done_pressed) 
@@ -183,8 +182,14 @@ int main() {
       trivia_q = pico_trivia::get_todays_question(daynumber);
     }
     
+    auto text_rgb = trivia_q.theme->get_text_rgb();
+    auto led_rgb = trivia_q.theme->get_led_rgb();
+    led.set_rgb(led_rgb[0], led_rgb[1], led_rgb[2]);
+    pimoroni::Pen TEXT_PEN = graphics.create_pen(text_rgb[0], text_rgb[1], text_rgb[2]);
+    pico_trivia::Background * BG = trivia_q.theme->get_background();
+  
     // draw background
-    BG.draw(graphics);
+    BG->draw(graphics);
     
     // Draw Trivia Question on Screen
     graphics.set_pen(TEXT_PEN);
@@ -236,7 +241,7 @@ int main() {
             
       
     // clear screen
-    BG.draw(graphics);
+    BG->draw(graphics);
 
 
     graphics.set_pen(TEXT_PEN);
