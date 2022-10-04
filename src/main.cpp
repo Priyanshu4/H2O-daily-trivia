@@ -13,21 +13,6 @@
 #include "clock.hpp"
 #include "trivia_questions_data.hpp"
 
-// Initialize Display Drivers
-pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
-pimoroni::PicoGraphics_PenRGB332 graphics(st7789.width, st7789.height, nullptr);
-
-// Initialize RGBLED on right side of display
-pimoroni::RGBLED led(pimoroni::PicoDisplay2::LED_R, pimoroni::PicoDisplay2::LED_G, pimoroni::PicoDisplay2::LED_B);
-
-// Initialize buttons
-pimoroni::Button button_a(pimoroni::PicoDisplay2::A);
-pimoroni::Button button_b(pimoroni::PicoDisplay2::B);
-pimoroni::Button button_x(pimoroni::PicoDisplay2::X);
-pimoroni::Button button_y(pimoroni::PicoDisplay2::Y);  
-
-enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
-
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
@@ -47,7 +32,21 @@ enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
 #define ANSWER_STATISTICS_MESSAGE_HEIGHT 120
 #define COME_BACK_MESSAGE_HEIGHT 180
 
+// Initialize Display Drivers
+pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
+pimoroni::PicoGraphics_PenRGB332 graphics(st7789.width, st7789.height, nullptr);
 
+// Initialize RGBLED on right side of display
+pimoroni::RGBLED led(pimoroni::PicoDisplay2::LED_R, pimoroni::PicoDisplay2::LED_G, pimoroni::PicoDisplay2::LED_B);
+
+// Initialize buttons
+pimoroni::Button button_a(pimoroni::PicoDisplay2::A);
+pimoroni::Button button_b(pimoroni::PicoDisplay2::B);
+pimoroni::Button button_x(pimoroni::PicoDisplay2::X);
+pimoroni::Button button_y(pimoroni::PicoDisplay2::Y);  
+
+enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
+enum SettingsMenuCursor {DAY = 0, HOUR = 1, MINUTE = 2, DONE = 3};
 
 struct AnswerStatistics 
 {
@@ -74,12 +73,92 @@ int main() {
   pimoroni::Pen WHITE = graphics.create_pen(255, 255, 255);
   pimoroni::Pen GREEN = graphics.create_pen(50, 205, 50);
   pimoroni::Pen RED = graphics.create_pen(255, 0, 0);
-  pimoroni::Pen BG = graphics.create_pen(0, 0, 255);
+  pimoroni::Pen BLUE = graphics.create_pen(0, 0, 255);
+  
+  pimoroni::Pen TEXT_PEN = WHITE;
 
 
-  // TODO on first setup, add a way to set date/time
+  // Create setup screen with way to set date/time
   pico_trivia::Clock clock = pico_trivia::Clock();
-  clock.set_time(pico_trivia::DayTime(0, 10, 37, 0));
+  pico_trivia::DayTime set_time = pico_trivia::DayTime(0, 0, 0, 0);
+  SettingsMenuCursor cursor = SettingsMenuCursor::DAY;
+  
+  bool done_pressed = false;
+  while(!done_pressed) 
+  {
+    graphics.set_pen(BLUE);
+    graphics.clear();
+    int32_t setup_text_width = graphics.measure_text("Setup", font_scale, 1);
+    graphics.set_pen(WHITE);
+    graphics.text("Setup", pimoroni::Point(SCREEN_WIDTH/2 - setup_text_width/2, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
+    graphics.set_pen(cursor == SettingsMenuCursor::DAY ? GREEN : WHITE);
+    graphics.text("Day: " + std::to_string(set_time.day), pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.set_pen(cursor == SettingsMenuCursor::HOUR ? GREEN : WHITE);
+    graphics.text("Hour: " + std::to_string(set_time.hour), pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.set_pen(cursor == SettingsMenuCursor::MINUTE ? GREEN: WHITE);
+    graphics.text("Minute: " + std::to_string(set_time.minute), pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    int32_t enter_text_width = graphics.measure_text("Done", font_scale, 1);
+    graphics.set_pen(cursor == SettingsMenuCursor::DONE ? GREEN : WHITE);
+    graphics.text("Done", pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    st7789.update(&graphics);
+    bool button_pressed = false;
+    while(!button_pressed)
+    {
+      if (button_a.read() && cursor > SettingsMenuCursor::DAY) 
+      {
+        cursor = (SettingsMenuCursor)(((int)cursor)- 1);
+        button_pressed = true;
+      }
+      else if(button_b.read() && cursor < SettingsMenuCursor::DONE) {
+        cursor = (SettingsMenuCursor)(((int)cursor)+ 1);
+        button_pressed = true;
+
+      }
+      else if(button_x.read()) {
+        switch (cursor) 
+        {
+          case SettingsMenuCursor::DAY:
+            set_time.day++;
+            button_pressed = true;
+            break;
+          case SettingsMenuCursor::HOUR:
+            set_time.hour += set_time.hour < 23 ? 1: 0;
+            button_pressed = true;
+            break;
+          case SettingsMenuCursor::MINUTE:
+            set_time.minute += set_time.minute < 59 ? 1: 0;
+            button_pressed = true;
+            break;
+          case SettingsMenuCursor::DONE:
+            done_pressed = true;
+            button_pressed = true;
+            break;
+        }
+      }
+      else if(button_y.read()) {
+        switch (cursor)
+        {
+          case SettingsMenuCursor::DAY:
+            set_time.day -= set_time.day > 0 ? 1 : 0;
+            button_pressed = true;
+            break;
+          case SettingsMenuCursor::HOUR:
+            set_time.hour -= set_time.hour > 0 ?  1: 0;
+            button_pressed = true;
+            break;
+          case SettingsMenuCursor::MINUTE:
+            set_time.minute -= set_time.minute > 0 ? 1 : 0;
+            button_pressed = true;
+            break;
+          case SettingsMenuCursor::DONE:
+            done_pressed = true;
+            button_pressed = true;
+            break;
+        }
+      }
+    }
+  }
+  clock.set_time(set_time);
   
   // get trivia question
   // TODO get a new trivia question every day
@@ -90,17 +169,19 @@ int main() {
   while(true) {
     
     // draw background
-    graphics.set_pen(BG);
+    graphics.set_pen(BLUE);
     graphics.clear();
   
     // get current time
     pico_trivia::DayTime now = clock.get_time();
-    std::string time_str = std::to_string(now.get_12_normalized_hour()) + ":" + std::to_string(now.minute);
+    std::string hour_str = std::to_string(now.get_12_normalized_hour());
+    std::string minute_str = now.minute < 10 ? "0" + std::to_string(now.minute) : std::to_string(now.minute);
+    std::string time_str = hour_str + ":" + minute_str;
     
     // Draw Trivia Question on Screen
-    graphics.set_pen(WHITE);
+    graphics.set_pen(TEXT_PEN);
     int32_t header_width = graphics.measure_text("H2O Daily Trivia", font_scale, 1);
-    graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2 - 1, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
+    graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
     
     int32_t time_width = graphics.measure_text(time_str, font_scale, 1);
     graphics.text(time_str, pimoroni::Point(SCREEN_WIDTH - time_width - TIME_LEFT_OFFSET, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
@@ -123,20 +204,20 @@ int main() {
     while(selected_answer == AnswerChoice::NO_ANSWER && !time_changed)
     {
       time_changed = clock.get_time().minute != now.minute;
-      if (button_a.raw()) 
+      if (button_a.read()) 
       {
         selected_answer = AnswerChoice::A;
         selected_letter = "A";
       }
-      else if(button_b.raw()) {
+      else if(button_b.read()) {
         selected_answer = AnswerChoice::B;
         selected_letter = "B";
       }
-      else if(button_x.raw()) {
+      else if(button_x.read()) {
         selected_answer = AnswerChoice::X;
         selected_letter = "X";
       }
-      else if(button_y.raw()) {
+      else if(button_y.read()) {
         selected_answer = AnswerChoice::Y;
         selected_letter = "Y";
       }
@@ -147,10 +228,10 @@ int main() {
             
       
     // clear screen
-    graphics.set_pen(BG);
+    graphics.set_pen(BLUE);
     graphics.clear();
 
-    graphics.set_pen(WHITE);
+    graphics.set_pen(TEXT_PEN);
     graphics.text("You selected answer " + selected_letter, pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
     graphics.text("Come back tommorow for another question!", pimoroni::Point(INDENT, COME_BACK_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
 

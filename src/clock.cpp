@@ -17,7 +17,7 @@ DayTime::DayTime(int day, int hour, int minute, int second)
 	if (hour >= 24)
 	{
 		day += hour / 24;
-		hour = hour % 60;
+		hour = hour % 24;
 	}
 	this->second = second;
 	this->minute = minute;
