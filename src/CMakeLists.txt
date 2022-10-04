@@ -20,7 +20,8 @@ add_executable(${NAME}
     trivia_questions_data.hpp
     clock.hpp
     clock.cpp
-
+    background.hpp
+    backgrounds_data.hpp
 )
 
 # Include required libraries

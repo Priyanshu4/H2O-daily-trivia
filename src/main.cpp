@@ -12,6 +12,7 @@
 
 #include "clock.hpp"
 #include "trivia_questions_data.hpp"
+#include "backgrounds_data.hpp"
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -71,11 +72,13 @@ int main() {
   
   // create pens
   pimoroni::Pen WHITE = graphics.create_pen(255, 255, 255);
+  pimoroni::Pen BLACK = graphics.create_pen(0, 0, 0);
   pimoroni::Pen GREEN = graphics.create_pen(50, 205, 50);
   pimoroni::Pen RED = graphics.create_pen(255, 0, 0);
   pimoroni::Pen BLUE = graphics.create_pen(0, 0, 255);
   
-  pimoroni::Pen TEXT_PEN = WHITE;
+  pimoroni::Pen TEXT_PEN = BLUE;
+  pico_trivia::Background BG = pico_trivia::bamboo_background;
 
 
   // Create setup screen with way to set date/time
@@ -181,8 +184,7 @@ int main() {
     }
     
     // draw background
-    graphics.set_pen(BLUE);
-    graphics.clear();
+    BG.draw(graphics);
     
     // Draw Trivia Question on Screen
     graphics.set_pen(TEXT_PEN);
@@ -234,8 +236,8 @@ int main() {
             
       
     // clear screen
-    graphics.set_pen(BLUE);
-    graphics.clear();
+    BG.draw(graphics);
+
 
     graphics.set_pen(TEXT_PEN);
     graphics.text("You selected answer " + selected_letter, pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
