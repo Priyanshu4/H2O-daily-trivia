@@ -265,10 +265,12 @@ int main() {
       answer_stats.num_correct++;
       graphics.set_pen(GREEN);
       graphics.text("Correct!", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale*2);
+      led.set_rgb(0, 255, 0);
     }
     else {
       graphics.set_pen(RED);
       graphics.text("Incorrect :(", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale*2);
+      led.set_rgb(255, 0, 0);
     }
     
     st7789.update(&graphics);
