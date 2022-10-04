@@ -1,2 +1,4 @@
 build/*
 .vscode/*
+*.pyc
+src/background_header_generator/__pycache__

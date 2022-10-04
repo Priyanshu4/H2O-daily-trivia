@@ -56,6 +56,8 @@ if __name__ == "__main__":
             f.write('{')
             for pixel in row:
                 rgb332 = to_rgb332(pixel)
+                if rgb332 >= 254:
+                    rgb332 = 254
                 f.write(f'{hex(rgb332)},')
             f.write('}, ')
         f.write('});')
