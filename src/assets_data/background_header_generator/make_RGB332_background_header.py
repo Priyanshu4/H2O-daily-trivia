@@ -6,7 +6,7 @@ import PIL.Image
 import argparse
 import numpy as np
 
-BACKGROUNDS_FOLDER_PATH = os.path.join("..", "..", "assets", "backgrounds")
+BACKGROUNDS_FOLDER_PATH = os.path.join("..", "..", "..", "assets", "backgrounds")
 OUTPUT_HEADER_FOLDER_PATH = "."
 SCREEN_HEIGHT = 240
 SCREEN_WIDTH = 320
@@ -56,8 +56,6 @@ if __name__ == "__main__":
             f.write('{')
             for pixel in row:
                 rgb332 = to_rgb332(pixel)
-                if rgb332 >= 254:
-                    rgb332 = 254
                 f.write(f'{hex(rgb332)},')
             f.write('}, ')
         f.write('});')
