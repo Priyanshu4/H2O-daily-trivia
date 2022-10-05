@@ -22,6 +22,7 @@ add_executable(${NAME}
     clock.hpp
     clock.cpp
     background.hpp
+    background.cpp
     assets_data/backgrounds_data.hpp
     theme.hpp
     assets_data/themes_data.hpp
