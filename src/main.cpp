@@ -27,6 +27,9 @@
 #define CHOICE_X_HEIGHT 160
 #define CHOICE_Y_HEIGHT 200
 
+#define LED_COLOR_CYCLE_TIME_MS 5000.0f
+#define PI 3.14159
+
 #define MILLISECONDS_TO_SHOW_ANSWER_SCREEN 5000
 #define SELECTED_ANSWER_MESSAGE_HEIGHT 20
 #define ANSWER_CORRECTNESS_MESSAGE_HEIGHT 65
@@ -46,62 +49,64 @@ pimoroni::Button button_b(pimoroni::PicoDisplay2::B);
 pimoroni::Button button_x(pimoroni::PicoDisplay2::X);
 pimoroni::Button button_y(pimoroni::PicoDisplay2::Y);  
 
-enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
-enum SettingsMenuCursor {DAY = 0, HOUR = 1, MINUTE = 2, DONE = 3};
+// create pens
+pimoroni::Pen WHITE = graphics.create_pen(255, 255, 255);
+pimoroni::Pen BLACK = graphics.create_pen(0, 0, 0);
+pimoroni::Pen GREEN = graphics.create_pen(50, 205, 50);
+pimoroni::Pen RED = graphics.create_pen(255, 0, 0);
+pimoroni::Pen BLUE = graphics.create_pen(0, 0, 255);
 
-struct AnswerStatistics 
+// font constants
+const bitmap::font_t * font = &font8;
+const float FONT_SCALE = 2;
+
+// HSV Conversion expects float inputs in the range of 0.00-1.00 for each channel
+// Outputs are rgb in the range 0-255 for each channel
+void from_hsv(float h, float s, float v, uint8_t &r, uint8_t &g, uint8_t &b) 
 {
-  unsigned int num_answers = 0;
-  unsigned int num_correct = 0;
-};
+  float i = floor(h * 6.0f);
+  float f = h * 6.0f - i;
+  v *= 255.0f;
+  uint8_t p = v * (1.0f - s);
+  uint8_t q = v * (1.0f - f * s);
+  uint8_t t = v * (1.0f - (1.0f - f) * s);
 
-int main() {
-  // set backlight to full brightness
-  st7789.set_backlight(255);
-  
-  // set random seed to the lower 32 bits of the hardware timer
-  unsigned int rand_seed = time_us_32(); 
-  srand(rand_seed);
+  switch (int(i) % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+  }
+}
 
-  // set font
-  const bitmap::font_t * font = &font8;
-  graphics.set_font(font);
-  float font_scale = 2;
-  int max_char_width = ceil(font_scale * font->max_width * font_scale);
-  int char_height = ceil(font_scale * font->height);
-  
-  // create pens
-  pimoroni::Pen WHITE = graphics.create_pen(255, 255, 255);
-  pimoroni::Pen BLACK = graphics.create_pen(0, 0, 0);
-  pimoroni::Pen GREEN = graphics.create_pen(50, 205, 50);
-  pimoroni::Pen RED = graphics.create_pen(255, 0, 0);
-  pimoroni::Pen BLUE = graphics.create_pen(0, 0, 255);
-
+pico_trivia::Clock clock_setup()
+{
+  enum SettingsMenuCursor {DAY = 0, HOUR = 1, MINUTE = 2, DONE = 3};
 
   // Create setup screen with way to set date/time
   pico_trivia::Clock clock = pico_trivia::Clock();
   pico_trivia::DayTime set_time = pico_trivia::DayTime(0, 0, 0, 0);
   SettingsMenuCursor cursor = SettingsMenuCursor::DAY;
-  
-  led.set_rgb(0, 0, 0);
-  
+
   bool done_pressed = false;
   while(!done_pressed) 
   {
     graphics.set_pen(BLUE);
     graphics.clear();
-    int32_t setup_text_width = graphics.measure_text("Setup", font_scale, 1);
+    int32_t setup_text_width = graphics.measure_text("Setup", FONT_SCALE, 1);
     graphics.set_pen(WHITE);
-    graphics.text("Setup", pimoroni::Point(SCREEN_WIDTH/2 - setup_text_width/2, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
+    graphics.text("Setup", pimoroni::Point(SCREEN_WIDTH/2 - setup_text_width/2, HEADER_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
     graphics.set_pen(cursor == SettingsMenuCursor::DAY ? GREEN : WHITE);
-    graphics.text("Day: " + std::to_string(set_time.day), pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("Day: " + std::to_string(set_time.day), pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     graphics.set_pen(cursor == SettingsMenuCursor::HOUR ? GREEN : WHITE);
-    graphics.text("Hour: " + std::to_string(set_time.hour), pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("Hour: " + std::to_string(set_time.hour), pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     graphics.set_pen(cursor == SettingsMenuCursor::MINUTE ? GREEN: WHITE);
-    graphics.text("Minute: " + std::to_string(set_time.minute), pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
-    int32_t enter_text_width = graphics.measure_text("Done", font_scale, 1);
+    graphics.text("Minute: " + std::to_string(set_time.minute), pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    int32_t enter_text_width = graphics.measure_text("Done", FONT_SCALE, 1);
     graphics.set_pen(cursor == SettingsMenuCursor::DONE ? GREEN : WHITE);
-    graphics.text("Done", pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("Done", pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     st7789.update(&graphics);
     bool button_pressed = false;
     while(!button_pressed)
@@ -161,7 +166,36 @@ int main() {
     }
   }
   clock.set_time(set_time);
+  return clock;
+}
+
+int main() 
+{
+
+  enum AnswerChoice {NO_ANSWER = -1, A = 0, B = 1, X = 2, Y = 3};
+
+  struct AnswerStatistics 
+  {
+    unsigned int num_answers = 0;
+    unsigned int num_correct = 0;
+  };
+
+  // set backlight to full brightness
+  st7789.set_backlight(255);
   
+  // set random seed to the lower 32 bits of the hardware timer
+  unsigned int rand_seed = time_us_32(); 
+  srand(rand_seed);
+
+  // set font
+  graphics.set_font(font);
+
+  // set led
+  led.set_rgb(0, 0, 0);
+
+  // clock setup screen
+  pico_trivia::Clock clock = clock_setup();
+
   int daynumber = clock.get_time().day;
   pico_trivia::TriviaQuestion trivia_q = pico_trivia::get_todays_question(daynumber);
   std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
@@ -183,8 +217,6 @@ int main() {
     }
     
     auto text_rgb = trivia_q.theme->get_text_rgb();
-    auto led_rgb = trivia_q.theme->get_led_rgb();
-    led.set_rgb(led_rgb[0], led_rgb[1], led_rgb[2]);
     pimoroni::Pen TEXT_PEN = graphics.create_pen(text_rgb[0], text_rgb[1], text_rgb[2]);
     pico_trivia::Background * BG = trivia_q.theme->get_background();
   
@@ -193,17 +225,17 @@ int main() {
     
     // Draw Trivia Question on Screen
     graphics.set_pen(TEXT_PEN);
-    int32_t header_width = graphics.measure_text("H2O Daily Trivia", font_scale, 1);
-    graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
+    int32_t header_width = graphics.measure_text("H2O Daily Trivia", FONT_SCALE, 1);
+    graphics.text("H2O Daily Trivia", pimoroni::Point(SCREEN_WIDTH/2 - header_width/2, HEADER_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
     
-    int32_t time_width = graphics.measure_text(time_str, font_scale, 1);
-    graphics.text(time_str, pimoroni::Point(SCREEN_WIDTH - time_width - TIME_LEFT_OFFSET, HEADER_HEIGHT), SCREEN_WIDTH, font_scale);
+    int32_t time_width = graphics.measure_text(time_str, FONT_SCALE, 1);
+    graphics.text(time_str, pimoroni::Point(SCREEN_WIDTH - time_width - TIME_LEFT_OFFSET, HEADER_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
     
-    graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, font_scale);
-    graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
-    graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
-    graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
-    graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
+    graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     
     // update screen
     st7789.update(&graphics);
@@ -234,42 +266,49 @@ int main() {
         selected_answer = AnswerChoice::Y;
         selected_letter = "Y";
       }
+
+      // Color Cycle LED
+      // Since HSV takes a float from 0.0 to 1.0 indicating hue,
+      // then we can divide millis by the number of milliseconds
+      // we want a full colour cycle to take. 5000 = 5 sec.
+      uint8_t r = 0, g = 0, b = 0;
+      //from_hsv((float)pimoroni::millis() / LED_COLOR_CYCLE_TIME_MS, 1.0f, 0.5f + sinf(pimoroni::millis() / 100.0f / PI) * 0.5f, r, g, b);
+      from_hsv((sinf(pimoroni::millis() * PI / LED_COLOR_CYCLE_TIME_MS / 2) + 1) / 2, 1.0f, 1.0f, r, g, b);
+      led.set_rgb(r, g, b);
     }
     
     // if while loop exited due to time change, continue instead of showing answer screen
     if (selected_answer == AnswerChoice::NO_ANSWER) continue;
             
-      
     // clear screen
     BG->draw(graphics);
 
-
     graphics.set_pen(TEXT_PEN);
-    graphics.text("You selected answer " + selected_letter, pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
-    graphics.text("Come back tommorow for another question!", pimoroni::Point(INDENT, COME_BACK_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+    graphics.text("You selected answer " + selected_letter, pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    graphics.text("Come back tommorow for another question!", pimoroni::Point(INDENT, COME_BACK_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
 
     
     if (answer_stats.num_answers == 0)
     {
-      graphics.text("You were the first person to answer today's question.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+      graphics.text("You were the first person to answer today's question.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     }
     else 
     {
       int percent_correct = 100 * ((float)answer_stats.num_correct)/answer_stats.num_answers;
       std::string percent_string = std::to_string(percent_correct);
-      graphics.text(percent_string + "% of other people got this question correct today.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale);
+      graphics.text(percent_string + "% of other people got this question correct today.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     }
 
     if (answer_choices[selected_answer] == trivia_q.correct_answer)
     {
       answer_stats.num_correct++;
       graphics.set_pen(GREEN);
-      graphics.text("Correct!", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale*2);
+      graphics.text("Correct!", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE*2);
       led.set_rgb(0, 255, 0);
     }
     else {
       graphics.set_pen(RED);
-      graphics.text("Incorrect :(", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, font_scale*2);
+      graphics.text("Incorrect :(", pimoroni::Point(INDENT, ANSWER_CORRECTNESS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE*2);
       led.set_rgb(255, 0, 0);
     }
     
