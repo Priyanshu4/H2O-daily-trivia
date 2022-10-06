@@ -59,6 +59,7 @@ pimoroni::Pen BLUE = graphics.create_pen(0, 0, 255);
 // font constants
 const bitmap::font_t * font = &font8;
 const float FONT_SCALE = 2;
+const int FONT_HEIGHT = FONT_SCALE * 8;
 
 // HSV Conversion expects float inputs in the range of 0.00-1.00 for each channel
 // Outputs are rgb in the range 0-255 for each channel
@@ -182,10 +183,6 @@ int main()
 
   // set backlight to full brightness
   st7789.set_backlight(255);
-  
-  // set random seed to the lower 32 bits of the hardware timer
-  unsigned int rand_seed = time_us_32(); 
-  srand(rand_seed);
 
   // set font
   graphics.set_font(font);
@@ -198,7 +195,6 @@ int main()
 
   int daynumber = clock.get_time().day;
   pico_trivia::TriviaQuestion trivia_q = pico_trivia::get_todays_question(daynumber);
-  std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
   AnswerStatistics answer_stats;
 
   while(true) {
@@ -233,6 +229,11 @@ int main()
     int32_t time_width = graphics.measure_text(time_str, FONT_SCALE, 1);
     graphics.text(time_str, pimoroni::Point(SCREEN_WIDTH - time_width - TIME_LEFT_OFFSET, HEADER_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
     
+    // randomize answer choices
+    // set random seed to the lower 32 bits of the hardware timer
+    unsigned int rand_seed = time_us_32(); 
+    srand(rand_seed);
+    std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
     graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
     graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
@@ -286,7 +287,15 @@ int main()
     BG->draw(graphics);
 
     graphics.set_pen(TEXT_PEN);
-    graphics.text("You selected answer " + selected_letter, pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    if (graphics.measure_text("You selected " + selected_letter + ") " + answer_choices[selected_answer]) > SCREEN_WIDTH-INDENT)
+    {
+      graphics.text("You selected", pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+      graphics.text(selected_letter + ") " + answer_choices[selected_answer], pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT + FONT_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    }
+    else
+    {
+      graphics.text("You selected " + selected_letter + ") " + answer_choices[selected_answer], pimoroni::Point(INDENT, SELECTED_ANSWER_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+    }
     graphics.text("Come back tommorow for another question!", pimoroni::Point(INDENT, COME_BACK_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
 
     
