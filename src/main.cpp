@@ -190,7 +190,7 @@ int main()
   // set font
   graphics.set_font(font);
 
-  // set led
+  // turn led off
   led.set_rgb(0, 0, 0);
 
   // clock setup screen
@@ -214,6 +214,8 @@ int main()
     {
       daynumber = now.day;
       trivia_q = pico_trivia::get_todays_question(daynumber);
+      answer_stats.num_answers = 0;
+      answer_stats.num_correct = 0;
     }
     
     auto text_rgb = trivia_q.theme->get_text_rgb();
