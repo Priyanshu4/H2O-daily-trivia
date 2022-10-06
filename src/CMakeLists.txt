@@ -18,13 +18,14 @@ pico_sdk_init()
 add_executable(${NAME}
     main.cpp # <-- Add source files here!n
     trivia_question.hpp
-    assets_data/trivia_questions_data.hpp
-    clock.hpp
-    clock.cpp
+    trivia_question.cpp
     background.hpp
     background.cpp
-    assets_data/backgrounds_data.hpp
+    clock.hpp
+    clock.cpp
     theme.hpp
+    assets_data/trivia_questions_data.hpp
+    assets_data/backgrounds_data.hpp
     assets_data/themes_data.hpp
 )
 
