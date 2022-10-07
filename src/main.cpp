@@ -195,6 +195,7 @@ int main()
 
   int daynumber = clock.get_time().day;
   pico_trivia::TriviaQuestion trivia_q = pico_trivia::get_todays_question(daynumber);
+  std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
   AnswerStatistics answer_stats;
 
   while(true) {
@@ -210,6 +211,7 @@ int main()
     {
       daynumber = now.day;
       trivia_q = pico_trivia::get_todays_question(daynumber);
+      answer_choices = trivia_q.get_shuffled_answer_choices();
       answer_stats.num_answers = 0;
       answer_stats.num_correct = 0;
     }
@@ -233,7 +235,6 @@ int main()
     // set random seed to the lower 32 bits of the hardware timer
     unsigned int rand_seed = time_us_32(); 
     srand(rand_seed);
-    std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
     graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH-5, FONT_SCALE);
     graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
@@ -321,6 +322,7 @@ int main()
     
     st7789.update(&graphics);
     answer_stats.num_answers++;
+    answer_choices = trivia_q.get_shuffled_answer_choices();
     sleep_ms(MILLISECONDS_TO_SHOW_ANSWER_SCREEN);
   }
   return 0;
