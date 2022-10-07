@@ -271,11 +271,7 @@ int main()
       }
 
       // Color Cycle LED
-      // Since HSV takes a float from 0.0 to 1.0 indicating hue,
-      // then we can divide millis by the number of milliseconds
-      // we want a full colour cycle to take. 5000 = 5 sec.
       uint8_t r = 0, g = 0, b = 0;
-      //from_hsv((float)pimoroni::millis() / LED_COLOR_CYCLE_TIME_MS, 1.0f, 0.5f + sinf(pimoroni::millis() / 100.0f / PI) * 0.5f, r, g, b);
       from_hsv((sinf(pimoroni::millis() * PI / LED_COLOR_CYCLE_TIME_MS / 2) + 1) / 2, 1.0f, 1.0f, r, g, b);
       led.set_rgb(r, g, b);
     }

@@ -1,15 +1,19 @@
-""" Takes a png file and makes a header file for an RGB332 background (320 by 240 image) with it.
+""" Automatically generates backgrounds_data.hpp using background png files in assets folder
 """
 import os
 import PIL
 import PIL.Image
-import argparse
 import numpy as np
+import glob
 
 BACKGROUNDS_FOLDER_PATH = os.path.join("..", "..", "..", "assets", "backgrounds")
-OUTPUT_HEADER_FOLDER_PATH = "."
+OUTPUT_HEADER_PATH = os.path.join("..", "backgrounds_data.hpp")
 SCREEN_HEIGHT = 240
 SCREEN_WIDTH = 320
+
+INITIAL_HEADER_FILE_LINES = '#pragma once\n#include "background.hpp"\n#include <pico/platform.h>\nnamespace pico_trivia\n{\n'
+TERMINATING_HEADER_FILE_LINES = '\n}'
+
 
 def to_rgb332(rgba_tuple):
     """ Takes a tuple of rgba values from 0 to 255 and converts to a single 0 to 255 integer representing a RGB332 value
@@ -21,41 +25,50 @@ def to_rgb332(rgba_tuple):
     return rgb332
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description=(
-            f'''Script to generate a header for an RGB332 background from a PNG file
-                Transparency data is not preserved.
-                '''
-        ),
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
 
-    parser.add_argument("asset_name", type=str, help="name of your background png file")
-    args = parser.parse_args()
+    background_pngs = glob.glob(os.path.join(BACKGROUNDS_FOLDER_PATH, '*.png'))
+    print("Generating data for the following backgrounds:")
 
-    ASSET_NAME = args.asset_name
-    PNG_FILEPATH = os.path.join(BACKGROUNDS_FOLDER_PATH, ASSET_NAME + '.png')
-
-    image = PIL.Image.open(PNG_FILEPATH)
-    image = np.asarray(image)
     
-    image_height = image.shape[0]
-    image_width = image.shape[1]
-    
-    assert image_height == SCREEN_HEIGHT
-    assert image_width == SCREEN_WIDTH
+    with open(OUTPUT_HEADER_PATH, 'w+') as f:
+        f.write(INITIAL_HEADER_FILE_LINES)
 
-    header_file = os.path.join(OUTPUT_HEADER_FOLDER_PATH, ASSET_NAME + '.hpp')
 
-    with open(header_file, 'w+') as f:
+        for png_filename in background_pngs:
 
-        f.write('#include "background.hpp"\n\n')
-        f.write(f'Background {ASSET_NAME}_background(')
-        f.write('{')
-        for row in image:
+            background_name = os.path.basename(png_filename)[:-4]
+
+            image = PIL.Image.open(png_filename)
+            image = np.asarray(image)
+            
+            image_height = image.shape[0]
+            image_width = image.shape[1]
+            data_bytes = int(image_height * image_width)
+            
+            if image_height != SCREEN_HEIGHT or image_width != SCREEN_WIDTH:
+                raise ValueError(f"Background image {png} has incorrect dimensions")
+
+
+            f.write(f'\n\tconst pimoroni::RGB332 __in_flash() {background_name}_background_rgbdata[{data_bytes}] = ')
             f.write('{')
-            for pixel in row:
-                rgb332 = to_rgb332(pixel)
-                f.write(f'{hex(rgb332)},')
-            f.write('}, ')
-        f.write('});')
+            for row in image:
+                for pixel in row:
+                    rgb332 = to_rgb332(pixel)
+                    # special correction for bamboo png
+                    if background_name == "bamboo" and rgb332 == 255:
+                        rgb332 = 254
+                    f.write(f'{hex(rgb332)},')
+            f.write('};')
+            f.write(f"\n\tBackground {background_name}_background({background_name}_background_rgbdata);")
+
+
+            print(png_filename)
+
+        f.write(TERMINATING_HEADER_FILE_LINES)
+
+    print(f"{OUTPUT_HEADER_PATH} successfully created")
+
+
+
+
+

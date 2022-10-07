@@ -14,16 +14,11 @@ namespace pico_trivia
         class Background 
         {
             public:
-                Background(const pimoroni::RGB332 (&rgb_data)[SCREEN_HEIGHT][SCREEN_WIDTH]);
-
-                /**
-                 * Draws the sprite with the pen that is already set in the graphics object.
-                 * The x and y are the top left position to draw the sprite.
-                 */
+                Background(const pimoroni::RGB332 rgb_data[SCREEN_HEIGHT*SCREEN_WIDTH]) {data = rgb_data;}
                 void draw(pimoroni::PicoGraphics_PenRGB332 &graphics);
 
             private:
-                pimoroni::RGB332 data[SCREEN_HEIGHT][SCREEN_WIDTH];
+                const pimoroni::RGB332 *data;
         };
 };
 
