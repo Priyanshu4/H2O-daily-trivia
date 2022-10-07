@@ -170,6 +170,15 @@ pico_trivia::Clock clock_setup()
   return clock;
 }
 
+pico_trivia::TriviaQuestion get_todays_question(int daynumber)
+{
+  if (daynumber < 0 || daynumber >= pico_trivia::trivia_questions.size())
+  {
+    return pico_trivia::ERROR_QUESTION;
+  }
+  return pico_trivia::trivia_questions[daynumber];
+}
+  
 int main() 
 {
 
@@ -194,8 +203,11 @@ int main()
   pico_trivia::Clock clock = clock_setup();
 
   int daynumber = clock.get_time().day;
-  pico_trivia::TriviaQuestion trivia_q = pico_trivia::get_todays_question(daynumber);
+  pico_trivia::TriviaQuestion trivia_q = get_todays_question(daynumber);
   std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
+  auto text_rgb = trivia_q.theme->get_text_rgb();
+  pimoroni::Pen TEXT_PEN = graphics.create_pen(text_rgb[0], text_rgb[1], text_rgb[2]);
+  pico_trivia::Background * BG = trivia_q.theme->get_background();
   AnswerStatistics answer_stats;
 
   while(true) {
@@ -210,16 +222,15 @@ int main()
     if (now.day != daynumber)
     {
       daynumber = now.day;
-      trivia_q = pico_trivia::get_todays_question(daynumber);
+      trivia_q = get_todays_question(daynumber);
       answer_choices = trivia_q.get_shuffled_answer_choices();
+      text_rgb = trivia_q.theme->get_text_rgb();
+      TEXT_PEN = graphics.create_pen(text_rgb[0], text_rgb[1], text_rgb[2]);
+      BG = trivia_q.theme->get_background();
       answer_stats.num_answers = 0;
       answer_stats.num_correct = 0;
     }
     
-    auto text_rgb = trivia_q.theme->get_text_rgb();
-    pimoroni::Pen TEXT_PEN = graphics.create_pen(text_rgb[0], text_rgb[1], text_rgb[2]);
-    pico_trivia::Background * BG = trivia_q.theme->get_background();
-  
     // draw background
     BG->draw(graphics);
     
@@ -240,7 +251,7 @@ int main()
     graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
-    
+
     // update screen
     st7789.update(&graphics);
     

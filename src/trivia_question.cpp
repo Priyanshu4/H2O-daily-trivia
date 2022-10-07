@@ -15,5 +15,6 @@ pico_trivia::TriviaQuestion& pico_trivia::TriviaQuestion::operator=(const Trivia
 	question = other.question;
 	correct_answer = other.correct_answer;
 	wrong_answers = other.wrong_answers;
+	theme = other.theme;
 	return *this;
 }

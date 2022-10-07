@@ -17,15 +17,6 @@ namespace pico_trivia {
 		TriviaQuestion("What was the original name of the Google search engine?", "BackRub", {"Alphabet", "WebCrawler", "JumpStation"}, &tech_theme),
 
 	};
-	
-	TriviaQuestion get_todays_question(int daynumber)
-	{
-		if (daynumber < 0 || daynumber >= trivia_questions.size())
-		{
-			return ERROR_QUESTION;
-		}
-		return trivia_questions[daynumber];
-	}
 }
 		
 
