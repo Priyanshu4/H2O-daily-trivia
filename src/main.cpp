@@ -284,7 +284,7 @@ int main()
 
       // Color Cycle LED
       uint8_t r = 0, g = 0, b = 0;
-      from_hsv((sinf(pimoroni::millis() * PI / LED_COLOR_CYCLE_TIME_MS / 2) + 1) / 2, 1.0f, 0.7f, r, g, b);
+      from_hsv((sinf(pimoroni::millis() * PI / LED_COLOR_CYCLE_TIME_MS / 2) + 1) / 2, 1.0f, 0.5f, r, g, b);
       led.set_rgb(r, g, b);
     }
     
