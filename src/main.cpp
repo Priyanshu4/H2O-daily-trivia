@@ -209,6 +209,10 @@ int main()
   pimoroni::Pen TEXT_PEN = graphics.create_pen(text_rgb[0], text_rgb[1], text_rgb[2]);
   pico_trivia::Background * BG = trivia_q.theme->get_background();
   AnswerStatistics answer_stats;
+  
+  // full_day indicates whether the pico has been up since at least 12 AM, or if the pico was re-setup in the middle of the day, erasing stats
+  // in the case that pico has to be taken down midday for reprogramming or battery discharge, we do not want to show certain stats for the rest of the day because they are incomplete
+  bool full_day = clock.get_time().hour == 0;
 
   while(true) {
   
@@ -229,6 +233,7 @@ int main()
       BG = trivia_q.theme->get_background();
       answer_stats.num_answers = 0;
       answer_stats.num_correct = 0;
+      full_day = true;
     }
     
     // draw background
@@ -315,7 +320,13 @@ int main()
     {
       int percent_correct = 100 * ((float)answer_stats.num_correct)/answer_stats.num_answers;
       std::string percent_string = std::to_string(percent_correct);
-      graphics.text(percent_string + "% of other people got this question correct today.", pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
+      std::string statistics_message = percent_string + "% of other people got this question correct today.";
+      if (full_day)
+      {
+        std::string num_answers_str = std::to_string(answer_stats.num_answers);
+        statistics_message = num_answers_str + " other answers received today. " + percent_string + "% were correct.";
+      }
+      graphics.text(statistics_message, pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     }
 
     if (answer_choices[selected_answer] == trivia_q.correct_answer)
