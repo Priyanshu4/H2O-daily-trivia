@@ -39,6 +39,12 @@
 
 #define SHUFFLE_ANSWER_CHOICES_AFTER_EACH_ANSWER false
 
+// between the hours of 2 AM and 7 AM every day, the screen goes into low power mode (reduced backlight brightness)
+#define NORMAL_BACKLIGHT_BRIGHTNESS 255
+#define LOW_POWER_BACKLIGHT_BRIGHTNESS 150
+#define LOW_POWER_MODE_START_HOUR 2
+#define LOW_POWER_MODE_END_HOUR 6
+
 // Initialize Display Drivers
 pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
 pimoroni::PicoGraphics_PenRGB332 graphics(st7789.width, st7789.height, nullptr);
@@ -193,8 +199,7 @@ int main()
     unsigned int num_correct = 0;
   };
 
-  // set backlight to full brightness
-  st7789.set_backlight(255);
+  st7789.set_backlight(NORMAL_BACKLIGHT_BRIGHTNESS);
 
   // set font
   graphics.set_font(font);
@@ -225,6 +230,14 @@ int main()
     std::string minute_str = now.minute < 10 ? "0" + std::to_string(now.minute) : std::to_string(now.minute);
     std::string time_str = hour_str + ":" + minute_str;
     
+    if (now.hour >= LOW_POWER_MODE_START_HOUR && now.hour <= LOW_POWER_MODE_END_HOUR)
+    {
+      st7789.set_backlight(LOW_POWER_BACKLIGHT_BRIGHTNESS);
+    }
+    else {
+      st7789.set_backlight(NORMAL_BACKLIGHT_BRIGHTNESS);
+    }
+
     // if day has changed, get new trivia question
     if (now.day != daynumber)
     {
