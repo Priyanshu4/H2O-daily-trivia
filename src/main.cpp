@@ -37,6 +37,8 @@
 #define ANSWER_STATISTICS_MESSAGE_HEIGHT 120
 #define COME_BACK_MESSAGE_HEIGHT 180
 
+#define SHUFFLE_ANSWER_CHOICES_AFTER_EACH_ANSWER false
+
 // Initialize Display Drivers
 pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
 pimoroni::PicoGraphics_PenRGB332 graphics(st7789.width, st7789.height, nullptr);
@@ -355,7 +357,7 @@ int main()
     
     st7789.update(&graphics);
     answer_stats.num_answers++;
-    answer_choices = trivia_q.get_shuffled_answer_choices();
+    if (SHUFFLE_ANSWER_CHOICES_AFTER_EACH_ANSWER) answer_choices = trivia_q.get_shuffled_answer_choices();
     sleep_ms(MILLISECONDS_TO_SHOW_ANSWER_SCREEN);
   }
   return 0;
