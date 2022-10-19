@@ -26,6 +26,7 @@
 #define CHOICE_B_HEIGHT 120
 #define CHOICE_X_HEIGHT 160
 #define CHOICE_Y_HEIGHT 200
+#define LONG_QUESTION_SHIFT 15 // for long questions that take 3 lines, answers are shifted down by this much
 
 #define LED_COLOR_CYCLE_TIME_MS 5000.0f
 #define PI 3.14159
@@ -251,11 +252,21 @@ int main()
     // set random seed to the lower 32 bits of the hardware timer
     unsigned int rand_seed = time_us_32(); 
     srand(rand_seed);
-    graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH-5, FONT_SCALE);
-    graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
-    graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
-    graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
-    graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+    graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH-10, FONT_SCALE);
+    if (graphics.measure_text(trivia_q.question) > SCREEN_WIDTH * 2)
+    {
+      graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT + LONG_QUESTION_SHIFT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+      graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT + LONG_QUESTION_SHIFT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+      graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT + LONG_QUESTION_SHIFT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+      graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT + LONG_QUESTION_SHIFT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+    }
+    else {
+      graphics.text("A) " + answer_choices[AnswerChoice::A], pimoroni::Point(INDENT, CHOICE_A_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+      graphics.text("B) " + answer_choices[AnswerChoice::B], pimoroni::Point(INDENT, CHOICE_B_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+      graphics.text("X) " + answer_choices[AnswerChoice::X], pimoroni::Point(INDENT, CHOICE_X_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+      graphics.text("Y) " + answer_choices[AnswerChoice::Y], pimoroni::Point(INDENT, CHOICE_Y_HEIGHT), SCREEN_WIDTH-INDENT-5, FONT_SCALE);
+    }
+
 
     // update screen
     st7789.update(&graphics);
