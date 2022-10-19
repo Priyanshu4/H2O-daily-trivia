@@ -337,7 +337,7 @@ int main()
       if (full_day)
       {
         std::string num_answers_str = std::to_string(answer_stats.num_answers);
-        statistics_message = num_answers_str + " other answers received today. " + percent_string + "% were correct.";
+        statistics_message = num_answers_str + " other answers received today.\n" + percent_string + "% were correct.";
       }
       graphics.text(statistics_message, pimoroni::Point(INDENT, ANSWER_STATISTICS_MESSAGE_HEIGHT), SCREEN_WIDTH-INDENT, FONT_SCALE);
     }
