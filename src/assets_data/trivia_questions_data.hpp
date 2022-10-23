@@ -22,7 +22,7 @@ namespace pico_trivia {
 		TriviaQuestion("What was the first soda consumed in space?", "Coca-Cola", {"Pepsi", "Dr Pepper", "Sprite"}, &space_theme),
 		TriviaQuestion("What song plays in the opening credits of Guardians of the Galaxy?", "Come and Get Your Love", {"Back in Black", "Hooked on a Feeling", "Blitzkrieg Bop"}, &movie_theme),
 		TriviaQuestion("Which video on youtube has the the most views?", "Baby Shark Dance", {"Gangam Style", "Despacito", "Uptown Funk"}, &generic_theme),
-		TriviaQuestion("Which carnivorous plant can digest not only insects, but also lizards and rodents?", "Pitcher Plant", {"Venus Flyrap", "Cobra Lily", "Portuguese Sundew"}, &generic_theme),
+		TriviaQuestion("Which carnivorous plant can digest not only insects, but also lizards and rodents?", "Pitcher Plant", {"Venus Flytrap", "Cobra Lily", "Portuguese Sundew"}, &generic_theme),
 		TriviaQuestion("Which two states don't observe daylight savings time?", "Arizona and Hawaii", {"Hawaii and Alaska", "Florida and Texas", "California and Nevada"}, &generic_theme),
 		TriviaQuestion("Which animal has the thickest fur?", "Sea Otter", {"Polar Bear", "Siberian Husky", "Chinchilla"}, &animals_theme),
 		TriviaQuestion("In what year was the first moon landing?", "1969", {"1974", "1959", "1962"}, &space_theme),
