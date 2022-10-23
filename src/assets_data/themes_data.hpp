@@ -12,5 +12,6 @@ namespace pico_trivia
 	pico_trivia::Theme space_theme(&pico_trivia::space_background, {255, 255, 255});
 	pico_trivia::Theme movie_theme(&pico_trivia::movie_background, {255, 255, 255});
 	pico_trivia::Theme sports_theme(&pico_trivia::soccer_field_background, {255, 255, 255});
+	pico_trivia::Theme animals_theme(&pico_trivia::animals_background, {255, 255, 255});
 	pico_trivia::Theme halloween_theme(&pico_trivia::halloween_background, {255, 213, 128});
 }
