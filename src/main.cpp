@@ -39,11 +39,11 @@
 
 #define SHUFFLE_ANSWER_CHOICES_AFTER_EACH_ANSWER false
 
-// between the hours of 2 AM and 7 AM every day, the screen goes into low power mode (reduced backlight brightness)
+// between the hours of 2 AM and 7 AM every day, the screen goes into low power mode if it enabled (reduced backlight brightness)
 #define NORMAL_BACKLIGHT_BRIGHTNESS 255
 #define LOW_POWER_BACKLIGHT_BRIGHTNESS 150
-#define LOW_POWER_MODE_START_HOUR 2
-#define LOW_POWER_MODE_END_HOUR 6
+#define LOW_POWER_MODE_START_HOUR 25
+#define LOW_POWER_MODE_END_HOUR -1
 
 // Initialize Display Drivers
 pimoroni::ST7789 st7789(320, 240, pimoroni::ROTATE_0, false, pimoroni::get_spi_pins(pimoroni::BG_SPI_FRONT));
@@ -210,6 +210,11 @@ int main()
   // clock setup screen
   pico_trivia::Clock clock = clock_setup();
 
+  // set random seed to the lower 32 bits of the hardware timer
+  // random seed used for randomization of answer choices
+  unsigned int rand_seed = time_us_32(); 
+  std::srand(rand_seed);
+
   int daynumber = clock.get_time().day;
   pico_trivia::TriviaQuestion trivia_q = get_todays_question(daynumber);
   std::array<std::string, NUM_ANSWER_CHOICES> answer_choices = trivia_q.get_shuffled_answer_choices();
@@ -263,10 +268,6 @@ int main()
     int32_t time_width = graphics.measure_text(time_str, FONT_SCALE, 1);
     graphics.text(time_str, pimoroni::Point(SCREEN_WIDTH - time_width - TIME_LEFT_OFFSET, HEADER_HEIGHT), SCREEN_WIDTH, FONT_SCALE);
     
-    // randomize answer choices
-    // set random seed to the lower 32 bits of the hardware timer
-    unsigned int rand_seed = time_us_32(); 
-    srand(rand_seed);
     graphics.text(trivia_q.question, pimoroni::Point(0, QUESTION_HEIGHT), SCREEN_WIDTH-10, FONT_SCALE);
     if (graphics.measure_text(trivia_q.question) > SCREEN_WIDTH * 2)
     {
