@@ -14,3 +14,8 @@ It also has four built-in buttons, which is perfect for multiple choice trivia q
 The software for the Pico was developed in C++ and uses the CMake build system.
 The case for the microcontroller and display was 3D printed.
 The microcontroller and screen are powered with a portable power bank.
+
+Here is what it looks like:
+
+![image](https://github.com/Priyanshu4/H2O-daily-trivia/assets/35632577/2b805b4d-3d00-49be-ae08-061a08264d30)
+![image](https://github.com/Priyanshu4/H2O-daily-trivia/assets/35632577/77f59ae1-9bd2-480a-b9cb-a3c3e328818d)
